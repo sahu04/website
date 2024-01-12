@@ -13,18 +13,15 @@ jobs:
         image: wernight/ngrok
         ports:
           - 4040:4040
-    container:
-      image: ghcr.io/zaproxy/zaproxy:stable
-      options: --entrypoint "sleep"
-      command: ["infinity"]
+      zap:
+        image: ghcr.io/zaproxy/zaproxy:stable
     steps:
       - name: Set Permissions
         run: |
           sudo chmod -R 777 ${{ github.workspace }}/zap_reports
 
       - name: Start ngrok
-        run: |
-          docker run --name ngrok -p 4000:4000 -d wernight/ngrok http 4000
+        run: docker run --name ngrok -p 4000:4000 -d wernight/ngrok http 4000
 
       - name: Wait for ngrok to Start
         run: sleep 10
@@ -32,6 +29,10 @@ jobs:
       - name: Expose Local Environment
         run: curl -sSf http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
         id: ngrok
+
+      - name: Run ZAP Baseline Scan
+        run: |
+          /usr/bin/docker run -v ${{ github.workspace }}/zap_reports:/zap/wrk/:rw --network=host -e ZAP_AUTH_HEADER -e ZAP_AUTH_HEADER_VALUE -e ZAP_AUTH_HEADER_SITE -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://${{ steps.ngrok.outputs.id }} -J /zap/wrk/report_json.json -w /zap/wrk/report_md.md -r /zap/wrk/report_html.html
 
       - name: Run ZAP Baseline Scan
         run: |
