@@ -12,8 +12,8 @@ jobs:
       ngrok:
         image: wernight/ngrok
         ports:
-          - 4000:4000
-        options: --entrypoints=web --region=us
+          - 4040:4040
+        command: ["http", "4000"]
       zap:
         image: ghcr.io/zaproxy/zaproxy:stable
     steps:
@@ -30,4 +30,4 @@ jobs:
 
       - name: Run ZAP Baseline Scan
         run: |
-          /usr/bin/docker run -v ${{ github.workspace }}/zap_reports:/zap/wrk/:rw --network=host -e ZAP_AUTH_HEADER -e ZAP_AUTH_HEADER_VALUE -e ZAP_AUTH_HEADER_SITE -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://${{ steps.ngrok.outputs.id }} -J /zap/wrk/report_json.json -w /zap/wrk/report_md.md -r /zap/wrk/report_html.html
+          /usr/bin/docker run -v ${{ github.workspace }}/zap_reports:/zap/wrk/:rw --network=host -e ZAP_AUTH_HEADER -e ZAP_AUTH_HEADER_VALUE -e ZAP_AUTH_HEADER_SITE -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://${{ steps.ngrok.outputs.id }} -J /zap/wrk/report_json.json -w /zap/wrk/report_md.md -r /zap/wrk/report_html
