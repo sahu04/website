@@ -1,6 +1,8 @@
-
 name: Security Checks
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   test:
@@ -8,19 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-       - uses: actions/checkout@v2
-         with:
-          ref: master
-       - name: Building Docker Node-Goat Image
-         run: docker-compose build
-       - name: Launching the app
-         run: docker-compose up --detach
-         
-       - name: OWASP ZAP
-         uses: zaproxy/action-baseline@v0.10.0
-         with:
-           # Target URL
-           target: "http://localhost:4000"
-           fail_action: false
-           token: $
-           issue_title: Security Tests
+      - name: Set Permissions
+        run: |
+          sudo chmod -R 777 ${{ github.workspace }}/zap_reports
+
+      - name: Expose Local Environment
+        run: ngrok http 4000  # Adjust port as needed
+        background: true
+
+      - name: Wait for ngrok to Start
+        run: sleep 5
+
+      - name: Run ZAP Baseline Scan
+        run: |
+          /usr/bin/docker run -v ${{ github.workspace }}/zap_reports:/zap/wrk/:rw --network=host -e ZAP_AUTH_HEADER -e ZAP_AUTH_HEADER_VALUE -e ZAP_AUTH_HEADER_SITE -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://host.docker.internal:4040 -J /zap/wrk/report_json.json -w /zap/wrk/report_md.md -r /zap/wrk/report_html.html
