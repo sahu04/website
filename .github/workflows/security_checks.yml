@@ -18,7 +18,7 @@ jobs:
         uses: zaproxy/action-baseline@v0.10.0
         with:
           # docker_name: 'owasp/zap2docker-stable'
-          target: 'https://github.com/sahu04/zapscan.git'
+          target: 'https://sahu04.github.io/website/'
           # rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
           
