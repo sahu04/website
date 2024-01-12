@@ -13,8 +13,10 @@ jobs:
         image: wernight/ngrok
         ports:
           - 4040:4040
-      zap:
-        image: ghcr.io/zaproxy/zaproxy:stable
+    container:
+      image: ghcr.io/zaproxy/zaproxy:stable
+      options: --entrypoint "sleep"
+      command: ["infinity"]
     steps:
       - name: Set Permissions
         run: |
